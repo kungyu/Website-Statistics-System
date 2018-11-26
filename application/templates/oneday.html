@@ -14,44 +14,16 @@
   <link rel="stylesheet" href="/static/css/style.css">
   <!-- endinject -->
   <link rel="shortcut icon" href="/static/images/favicon.png" />
+    <script src="/static/js/Chart.bundle.js"></script>
+  <script src="/static/js/utils.js"></script>
   <style>
-    .pagination li{
-        margin:0 10px;
-    }
-    .pagination li a{
-          padding: 0.5rem 0.81rem;
-        font-size: 0.875rem;
-        line-height: 1.5;
-        border-radius: 0.1875rem;
-        background: #ddd;
-        cursor:pointer
-    }
-    .pagination li a:hover{
-      background:#ccc;
-    }
-    .pagination li.active a,.pagination li.active a:hover{
-      background:#b66dff;
-      border-color:#b66dff;
-      color:#fff;
-    }
-
-    .pagination li.disabled a{
-        cursor:not-allowed;
-        background:#ccc;
-    }
-
     .navbar.default-layout-navbar .navbar-brand-wrapper .navbar-brand img {width:auto}
-
-
+    canvas{
+		-moz-user-select: none;
+		-webkit-user-select: none;
+		-ms-user-select: none;
+	}
   </style>
-  <script>
-    function submit_form(event){
-      e = event ? event :(window.event ? window.event : null);
-      if(e.keyCode==13){
-      alert('回车检测到了');
-      }
-    }
-  </script>
 </head>
 <body>
   <div class="container-scroller">
@@ -61,47 +33,7 @@
         <a class="navbar-brand brand-logo" href="index.html"><img src="/static/images/logo.jpg" alt="logo"/></a>
         <a class="navbar-brand brand-logo-mini" href="index.html"><img src="/static/images/logo-mini.svg" alt="logo"/></a>
       </div>
-      <div class="navbar-menu-wrapper d-flex align-items-stretch">
-        <div class="search-field d-none d-md-block">
-          <form class="d-flex align-items-center h-100" action="/ip_url_detail" name="urlSearch" method="get">
-            <div class="input-group">
-              <div class="input-group-prepend bg-transparent">
-                  <i class="input-group-text border-0 mdi mdi-magnify"></i>
-              </div>
-              <input type="hidden" name="date" value="{{date}}">
-              <input type="text" name="url_search" value="{% if url_search %}{{url_search}}{% else %}{% endif %}" class="form-control bg-transparent border-0"  placeholder="网址查询">
-            </div>
-          </form>
-        </div>
-        <!--<ul class="navbar-nav navbar-nav-right">
-          <li class="nav-item nav-profile dropdown">
-            <a class="nav-link dropdown-toggle" id="profileDropdown" href="#" data-toggle="dropdown" aria-expanded="false">
-              <div class="nav-profile-img">
-                <img src="/static/images/faces/face1.jpg" alt="image">
-                <span class="availability-status online"></span>
-              </div>
-              <div class="nav-profile-text">
-                <p class="mb-1 text-black">David Greymaax</p>
-              </div>
-            </a>
-            <div class="dropdown-menu navbar-dropdown" aria-labelledby="profileDropdown">
-              <a class="dropdown-item" href="#">
-                <i class="mdi mdi-cached mr-2 text-success"></i>
-                Activity Log
-              </a>
-              <div class="dropdown-divider"></div>
-              <a class="dropdown-item" href="#">
-                <i class="mdi mdi-logout mr-2 text-primary"></i>
-                Signout
-              </a>
-            </div>
-          </li>
 
-        </ul>-->
-        <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas">
-          <span class="mdi mdi-menu"></span>
-        </button>
-      </div>
     </nav>
     <!-- partial -->
     <div class="container-fluid page-body-wrapper">
@@ -157,76 +89,92 @@
               <span class="page-title-icon bg-gradient-primary text-white mr-2">
                 <i class="mdi mdi-home"></i>
               </span>
-              URL访问详情
+              统计曲线
             </h3>
-            <!--<nav aria-label="breadcrumb">
-              <ul class="breadcrumb">
-                <li class="breadcrumb-item active" aria-current="page">
-                  <span></span>Overview
-                  <i class="mdi mdi-alert-circle-outline icon-sm text-primary align-middle"></i>
-                </li>
-              </ul>
-            </nav>-->
-          </div>
 
+          </div>
           <div class="row">
-            <div class="col-md-12 grid-margin stretch-card">
-              <div class="card">
-                <div class="card-body">
-                  <h4 class="card-title">单页面访问统计数据</h4>
-                  <div class="table-responsive">
-                    <table class="table">
-                      <thead>
-                        <tr>
-                          <th>
-                            日期
-                          </th>
-                          <th>
-                            PV
-                          </th>
-                          <th>
-                            IP
-                          </th>
-                          <th>
-                            URL
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
+           <div style="width:75%;">
+                <canvas id="canvas"></canvas>
+           </div>
+	<script>
+		var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+		var config = {
+			type: 'line',
+			data: {
+				labels: ['01', '02', '03', '04', '05', '06', '07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24'],
+				datasets: [{
+					label: '昨日访问',
+					backgroundColor: window.chartColors.red,
+					borderColor: window.chartColors.red,
+					data: [
+					{% for item in yes_visit %}
+						{{item.visit_count}},
+					{% endfor %}
+					],
+					fill: false,
+				}, {
+					label: '今日访问',
+					fill: false,
+					backgroundColor: window.chartColors.blue,
+					borderColor: window.chartColors.blue,
+					data: [
+						{% for item in tod_visit %}
+						{{item.visit_count}},
+					    {% endfor %}
+					],
+				}]
+			},
+			options: {
+				responsive: true,
+				title: {
+					display: true,
+					text: 'Chart.js Line Chart'
+				},
+				tooltips: {
+					mode: 'index',
+					intersect: false,
+				},
+				hover: {
+					mode: 'nearest',
+					intersect: true
+				},
+				scales: {
+					xAxes: [{
+						display: true,
+						scaleLabel: {
+							display: true,
+							labelString: 'Month'
+						}
+					}],
+					yAxes: [{
+						display: true,
+						scaleLabel: {
+							display: true,
+							labelString: 'Value'
+						}
+					}]
+				}
+			}
+		};
+
+		window.onload = function() {
+			var ctx = document.getElementById('canvas').getContext('2d');
+			window.myLine = new Chart(ctx, config);
+		};
+
+	</script>
 
 
 
 
-                        {% for item in url_date_info %}
-                        <tr>
-                          <td>
-                            {{item.date}}
-                          </td>
-                          <td>
-                            {{item.date_pv}}
-                          </td>
-                          <td>
-                            {{item.date_ip}}
-                          </td>
-                          <td>
-                            {{item.url}}
-                          </td>
-                        </tr>
-                        {% endfor %}
 
 
 
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            </div>
+
+
           </div>
 
-          <div class="row" style="display:block;">
-            {{pagination.links}}
-          </div>
 
         </div>
         <!-- content-wrapper ends -->
@@ -254,6 +202,7 @@
   <!-- inject:js -->
   <script src="/static/js/off-canvas.js"></script>
   <script src="/static/js/misc.js"></script>
+
   <!-- endinject -->
   <!-- Custom js for this page-->
   <script src="/static/js/dashboard.js"></script>

@@ -121,6 +121,23 @@ def ip_url_detail():
     }
     return render_template('ip_url_detail.html', **data)
 
+@app.route('/one_day_count')
+def one_day_count():
+    user_type = session['user_type']
+    if (user_type != 'admin'):
+        return ''
+    yesterday = str(datetime.date.today() + datetime.timedelta(-1))
+    td = time.strftime("%Y-%m-%d")
+    yes_visit = db.one_hour_visit.find({'date':yesterday}).sort([('hour',1)])
+    tod_visit = db.one_hour_visit.find({'date':td}).sort([('hour',1)])
+
+    data = {
+        'yes_visit':yes_visit,
+        'tod_visit':tod_visit
+    }
+    return render_template('oneday.html',**data)
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
